@@ -10,6 +10,7 @@ import kagglehub
 import pandas as pd
 import numpy as np
 from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import train_test_split as sk_train_test_split
 
 def load_dataset() -> pd.DataFrame:
     path = kagglehub.dataset_download("mlg-ulb/creditcardfraud")
@@ -72,3 +73,28 @@ class NeuralNetwork:
         print("b1 shape: ", self.b1.shape)
         print("W2 shape: ", self.W2.shape)
         print("b2 shape: ", self.b2.shape)
+
+    def forward_propagation(self, X_batch):
+        self.Z1 = np.dot(X_batch, self.W1) + self.b1
+        self.A1 = np.maximum(0, self.Z1)
+
+        self.Z2 = np.dot(self.A1, self.W2) + self.b2
+        self.A2 = 1 / (1 + np.exp(-np.clip(self.Z2, -500, 500)))
+        return self.A2
+
+
+    def loss_func(self, y_batch):
+        s = y_batch.shape[0]
+        self.loss = (-1 / s) * np.sum((y_batch * np.log(self.A2 + 1e-8)) + ((1 - y_batch) * np.log(1 - self.A2 + 1e-8)))
+
+    def backward_propagation(self, X_batch, y_batch):
+        training = X_batch.shape[0]
+
+        self.dZ2 = self.A2 - y_batch.reshape(-1, 1)
+        self.dW2 = 1 / training * np.dot(self.A1.T, self.dZ2)
+        self.db2 = 1 / training * np.sum(self.dZ2, axis=0, keepdims=True)
+
+        self.dA1 = np.dot(self.dZ2, self.W2.T)
+        self.dZ1 = self.dA1 * (self.Z1 > 0)
+
+        self.dW1 = 1 / training * np.dot(X_batch.T, self.dZ1)
