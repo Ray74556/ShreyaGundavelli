@@ -98,3 +98,41 @@ class NeuralNetwork:
         self.dZ1 = self.dA1 * (self.Z1 > 0)
 
         self.dW1 = 1 / training * np.dot(X_batch.T, self.dZ1)
+
+    def grad_descent(self, learning_rate=0.01):
+        self.W1 -= learning_rate * self.dW1
+        self.b1 -= learning_rate * self.b1
+        self.W2 -= learning_rate * self.W2
+        self.b2 -= learning_rate * self.b2
+
+    def train(self, epochs=1000, learning_rate=0.01, batch_size=256):
+        self.epochs = epochs
+        self.learning_rate = learning_rate
+        n = self.X_train.shape[0]
+
+        for epoch in range(epochs):
+            indicies = np.random.permutation(n)
+            X_shuffled = self.X_train[indicies]
+            y_shuffled = self.y_train[indicies]
+
+            epoch_loss = 0.0
+            n_batches = 0
+
+            for start in range(0, n, batch_size):
+                end = start + batch_size
+                X_batch = X_shuffled[start:end]
+                y_batch = y_shuffled[start:end]
+
+                self.forward_propagation(X_batch)
+                self.loss_func(y_batch)
+                self.backward_propagation(X_batch, y_batch)
+                self.grad_descent(learning_rate)
+
+                epoch_loss += self.loss
+                n_batches += 1
+
+            self.loss = epoch_loss / n_batches
+            self.loss_hist.append(self.loss)
+
+            if epoch % 100 == 0:
+                print(f" Epoch {epoch+1}/{epochs}: Loss: {self.loss:.6f}")
