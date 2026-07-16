@@ -136,3 +136,41 @@ class NeuralNetwork:
 
             if epoch % 100 == 0:
                 print(f" Epoch {epoch+1}/{epochs}: Loss: {self.loss:.6f}")
+
+    def predict_and_eval(self, X, y, threshold=0.3):
+        """Predict X/y and return metrics"""
+
+        Z1 = np.dot(X, self.W1) + self.b1
+        A1 = np.maximum(0, Z1)
+        Z2 = np.dot(A1, self.W2) + self.b2
+        A2 = 1 / (1 + np.exp(-np.clip(Z2, -500, 500)))
+
+        predictions = (A2 >= threshold).astype(int).flatten()
+        y = y.flatten()
+
+        accuracy = np.sum(predictions == y) / len(predictions)
+
+        TP = np.sum((predictions == 1) & (y == 1))
+        TN = np.sum((predictions == 0) & (y == 0))
+        FP = np.sum((predictions == 1) & (y == 0))
+        FN = np.sum((predictions == 0) & (y == 1))
+
+        precision = TP / (TP + FP + 1e-8)
+        recall = TP / (TP + FN + 1e-8)
+        f1 = 2 * precision * recall / (precision + recall + 1e-8)
+
+        print("Accuracy:", accuracy)
+        print("Precision:", precision)
+        print("Recall:", recall)
+        print("F1 Score:", f1)
+
+        return {
+            "accuracy": accuracy,
+            "precision": precision,
+            "recall": recall,
+            "F1": f1,
+            "CM": [[TN, FP], [FN, TP]],
+        }
+
+if __name__ == "__main__":
+    df = load_dataset()
