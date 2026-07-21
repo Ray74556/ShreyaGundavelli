@@ -28,7 +28,7 @@ class NeuralNetwork:
     """ Drop duplicates, random-undersample the majority class down to the 
     fraud, and standardize features."""
     def preprocess(self):
-        self.df = self.df.drop_duplicates(inplace=True)
+        self.df.drop_duplicates(inplace=True)
 
         fraud = self.df[self.df["Class"] == 1]
         normal = self.df[self.df["Class"] == 0]
@@ -60,11 +60,11 @@ class NeuralNetwork:
 
         # initialize weights and biases for input and hidden layer
         # He initialization for ReLU hidden Layer
-        self.W1 = np.random.rand(input_size, hidden_size) * np.sqrt(2.0 / input_size)
+        self.W1 = np.random.randn(input_size, hidden_size) * np.sqrt(2.0 / input_size)
         self.b1  = np.zeros(hidden_size)
 
         # initialize weights and biases for hidden and output layer
-        self.W2 = np.random.rand(hidden_size, output_size) * 0.01
+        self.W2 = np.random.randn(hidden_size, output_size) * 0.01
         self.b2 = np.zeros(output_size)
         self.loss_hist = []
 
@@ -82,33 +82,48 @@ class NeuralNetwork:
         self.A2 = 1 / (1 + np.exp(-np.clip(self.Z2, -500, 500)))
         return self.A2
 
-
     def loss_func(self, y_batch):
         s = y_batch.shape[0]
-        self.loss = (-1 / s) * np.sum((y_batch * np.log(self.A2 + 1e-8)) + ((1 - y_batch) * np.log(1 - self.A2 + 1e-8)))
+        y_batch = y_batch.reshape(-1, 1)  # match self.A2's shape: (n, 1)
+        self.loss = (-1 / s) * np.sum(
+            (y_batch * np.log(self.A2 + 1e-8)) + ((1 - y_batch) * np.log(1 - self.A2 + 1e-8))
+        )
+
+    def _compute_loss(self, y_true, y_pred_proba):
+        """Stateless loss computation -- doesn't touch self.Z1/A1/etc.,
+        safe to call for validation without corrupting training state."""
+        y_true = y_true.flatten()
+        y_pred_proba = y_pred_proba.flatten()
+        s = y_true.shape[0]
+        return (-1 / s) * np.sum(
+            y_true * np.log(y_pred_proba + 1e-8) + (1 - y_true) * np.log(1 - y_pred_proba + 1e-8)
+        )
 
     def backward_propagation(self, X_batch, y_batch):
         training = X_batch.shape[0]
 
         self.dZ2 = self.A2 - y_batch.reshape(-1, 1)
         self.dW2 = 1 / training * np.dot(self.A1.T, self.dZ2)
-        self.db2 = 1 / training * np.sum(self.dZ2, axis=0, keepdims=True)
+        self.db2 = 1 / training * np.sum(self.dZ2, axis=0)
 
         self.dA1 = np.dot(self.dZ2, self.W2.T)
         self.dZ1 = self.dA1 * (self.Z1 > 0)
 
         self.dW1 = 1 / training * np.dot(X_batch.T, self.dZ1)
+        self.db1 = 1 / training * np.sum(self.dZ1, axis=0)
 
     def grad_descent(self, learning_rate=0.01):
         self.W1 -= learning_rate * self.dW1
-        self.b1 -= learning_rate * self.b1
-        self.W2 -= learning_rate * self.W2
-        self.b2 -= learning_rate * self.b2
+        self.b1 -= learning_rate * self.db1
+        self.W2 -= learning_rate * self.dW2
+        self.b2 -= learning_rate * self.db2
 
-    def train(self, epochs=1000, learning_rate=0.01, batch_size=256):
+    def train(self, epochs=1000, learning_rate=0.01, batch_size=256, X_val=None, y_val=None):
         self.epochs = epochs
         self.learning_rate = learning_rate
         n = self.X_train.shape[0]
+        self.val_loss_hist = []
+        self.val_acc_hist = []
 
         for epoch in range(epochs):
             indicies = np.random.permutation(n)
@@ -134,8 +149,19 @@ class NeuralNetwork:
             self.loss = epoch_loss / n_batches
             self.loss_hist.append(self.loss)
 
+            # evaluate on the held-out set every epoch, without training on it
+            if X_val is not None and y_val is not None:
+                val_preds_proba = self.forward_propagation(X_val)
+                val_loss = self._compute_loss(y_val, val_preds_proba)  # see note below
+                val_acc = np.mean((val_preds_proba >= 0.5).flatten() == y_val.flatten())
+                self.val_loss_hist.append(val_loss)
+                self.val_acc_hist.append(val_acc)
+
             if epoch % 100 == 0:
-                print(f" Epoch {epoch+1}/{epochs}: Loss: {self.loss:.6f}")
+                msg = f" Epoch {epoch + 1}/{epochs}: Train Loss: {self.loss:.6f}"
+                if X_val is not None:
+                    msg += f" | Val Loss: {self.val_loss_hist[-1]:.6f} | Val Acc: {self.val_acc_hist[-1]:.4f}"
+                print(msg)
 
     def predict_and_eval(self, X, y, threshold=0.3):
         """Predict X/y and return metrics"""
@@ -174,3 +200,5 @@ class NeuralNetwork:
 
 if __name__ == "__main__":
     df = load_dataset()
+    print(f"Loaded {len(df):,} transactions")
+    print(f"Fraud cases: {df['Class'].sum():,} ({df['Class'].mean()*100:.3f}%)")
