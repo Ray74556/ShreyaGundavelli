@@ -5,6 +5,12 @@ Run experiments
 import gc
 from fraud_model import load_dataset, NeuralNetwork
 from experiement_log import clear_log, experiment_log
+from visualize import (
+    plot_arch,
+    plot_class_dist,
+    plot_metric_comparison,
+    plot_confusion_matrix,
+)
 
 EXPERIMENTS = [
     {"epochs": 100, "learning_rate": 0.001},
@@ -15,6 +21,7 @@ EXPERIMENTS = [
 def main():
     clear_log()
     df = load_dataset()
+    plot_class_dist(df)
     results = []
 
     for i, params in enumerate(EXPERIMENTS, start=1):
@@ -30,10 +37,19 @@ def main():
         experiment_log(i, params["epochs"], params["learning_rate"], metrics)
 
         results.append(
-            {"label": f"Exp {i} \n (e={params['epochs']}, lr={params['learning_rate']})" })
+            {"label": f"Exp {i} \n (e={params['epochs']}, lr={params['learning_rate']})", **metrics}
+        )
 
         del model
         gc.collect()
+
+    plot_arch()
+    plot_metric_comparison(results)
+
+    best = max(results, key=lambda r: r["F1"])
+    plot_confusion_matrix(best["CM"], title=f"Confusion Matrix - Best Experiment (F1={best['F1']:.3f})")
+
+    print("\nDone. Figures saved to project root, results logged to experiment_log.txt")
 
 if __name__ == "__main__":
     main()
