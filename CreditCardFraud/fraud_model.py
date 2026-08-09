@@ -25,8 +25,6 @@ class NeuralNetwork:
         self.epochs = None
         self.learning_rate = None
 
-    """ Drop duplicates, random-undersample the majority class down to the 
-    fraud, and standardize features."""
     def preprocess(self):
         self.df.drop_duplicates(inplace=True)
 
@@ -90,8 +88,6 @@ class NeuralNetwork:
         )
 
     def _compute_loss(self, y_true, y_pred_proba):
-        """Stateless loss computation -- doesn't touch self.Z1/A1/etc.,
-        safe to call for validation without corrupting training state."""
         y_true = y_true.flatten()
         y_pred_proba = y_pred_proba.flatten()
         s = y_true.shape[0]

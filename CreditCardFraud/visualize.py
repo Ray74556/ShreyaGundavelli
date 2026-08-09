@@ -18,7 +18,6 @@ def plot_arch(save_path="fig1_nn_arch.png"):
         "Output\n(1 neuron)": (8.5, [5]),
     }
 
-
     node_rad = 0.3
 
     colors = {
@@ -119,12 +118,14 @@ def plot_metric_comparison(results, save_path="fig3_metrics_compare.png"):
 def plot_confusion_matrix(cm, title="Confusion Matrix", save_path="fig4_confusion_matrix.png"):
     cm = np.array(cm)
     fig, axes = plt.subplots(figsize=(8, 6))
+
     sns.heatmap(
         cm, annot=True, fmt="d", cmap="Blues",
         xticklabels=["Predicted Normal", "Predicted Fraud"],
         yticklabels=["Actual Normal", "Actual Fraud"],
         linewidths=1, linecolor="black", ax=axes,
     )
+
     axes.set_title(title)
     axes.set_ylabel("Actual Label")
     axes.set_xlabel("Predicted Label")

@@ -1,6 +1,5 @@
 """
 Experiment Log
-
 """
 
 def clear_log(log_path="experiment_log.txt"):
@@ -28,4 +27,3 @@ def experiment_log(experiment_num, epochs, learning_rate, metrics, log_path="exp
     )
     with open(log_path, "a") as f:
         f.write(entry)
-
