@@ -18,41 +18,66 @@ def load_dataset() -> pd.DataFrame:
     return df
 
 class NeuralNetwork:
-    def __init__(self, df = pd.DataFrame):
+    def __init__(self, df: pd.DataFrame):
         self.df = df
         self.X = df.drop(columns =['Class'])
         self.y = df['Class']
         self.epochs = None
         self.learning_rate = None
 
-    def preprocess(self):
-        self.df.drop_duplicates(inplace=True)
+    def preprocess_and_split(self, test_size=0.2):
+        self.df = self.df.drop_duplicates().copy()
 
-        fraud = self.df[self.df["Class"] == 1]
-        normal = self.df[self.df["Class"] == 0]
+        X = self.df.drop(columns=["Class"])
+        y = self.df["Class"]
 
-        normal_undersample = normal.sample(n=len(fraud), random_state=42)
-        self.df = pd.concat([fraud, normal_undersample])
-        self.df = self.df.sample(frac=1, random_state=42).reset_index(drop=True)
+        # Test set preserves the real fraud prevalence
+        X_train, X_test, y_train, y_test = sk_train_test_split(
+            X,
+            y,
+            test_size=test_size,
+            random_state=42,
+            stratify=y
+        )
 
-        self.X = self.df.drop(columns =['Class']).to_numpy()
-        self.y = self.df["Class"].to_numpy()
+        # Combine only training data so it can be undersampled
+        train_df = pd.concat([X_train, y_train], axis=1)
 
-        scaler = StandardScaler()
-        self.X = scaler.fit_transform(self.X)
+        fraud_train = train_df[train_df["Class"] == 1]
+        normal_train = train_df[train_df["Class"] == 0]
 
-    def train_test_split(self, test_size = 0.2):
-        self.X_train, self.X_test, self.y_train, self.y_test = sk_train_test_split(self.X, self.y, test_size=test_size, random_state=42, stratify=self.y)
-        return self.X_train, self.X_test, self.y_train, self.y_test
+        normal_undersample = normal_train.sample(
+            n=len(fraud_train),
+            random_state=42
+        )
+
+        balanced_train = pd.concat(
+            [fraud_train, normal_undersample]
+        ).sample(frac=1, random_state=42)
+
+        X_train_balanced = balanced_train.drop(columns=["Class"])
+        y_train_balanced = balanced_train["Class"]
+
+        # Fit only on training data; transform test with that same scaler
+        self.scaler = StandardScaler()
+        self.X_train = self.scaler.fit_transform(X_train_balanced)
+        self.X_test = self.scaler.transform(X_test)
+
+        self.y_train = y_train_balanced.to_numpy()
+        self.y_test = y_test.to_numpy()
 
     def check_split(self):
-        print("Train shape: ", self.X_train.shape)
-        print("Test shape: ", self.X_test.shape)
-        print("Train fraud count: ", self.y_train.shape)
-        print("Test fraud count: ", self.y_test.shape)
+        print("Training shape:", self.X_train.shape)
+        print("Test shape:", self.X_test.shape)
+
+        print("Training fraud count:", np.sum(self.y_train == 1))
+        print("Test fraud count:", np.sum(self.y_test == 1))
+
+        print("Training fraud rate:", np.mean(self.y_train) * 100)
+        print("Test fraud rate:", np.mean(self.y_test) * 100)
 
     def initialize_weights(self):
-        input_size = self.X.shape[1]
+        input_size = self.X_train.shape[1]
         hidden_size =  64
         output_size = 1
 
@@ -122,9 +147,9 @@ class NeuralNetwork:
         self.val_acc_hist = []
 
         for epoch in range(epochs):
-            indicies = np.random.permutation(n)
-            X_shuffled = self.X_train[indicies]
-            y_shuffled = self.y_train[indicies]
+            indices = np.random.permutation(n)
+            X_shuffled = self.X_train[indices]
+            y_shuffled = self.y_train[indices]
 
             epoch_loss = 0.0
             n_batches = 0
@@ -153,7 +178,7 @@ class NeuralNetwork:
                 self.val_loss_hist.append(val_loss)
                 self.val_acc_hist.append(val_acc)
 
-            if epoch % 100 == 0:
+            if (epoch + 1) % 100 == 0 or epoch == 0:
                 msg = f" Epoch {epoch + 1}/{epochs}: Train Loss: {self.loss:.6f}"
                 if X_val is not None:
                     msg += f" | Val Loss: {self.val_loss_hist[-1]:.6f} | Val Acc: {self.val_acc_hist[-1]:.4f}"

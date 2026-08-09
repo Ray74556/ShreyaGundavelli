@@ -70,15 +70,15 @@ three experiments, writes results to `experiment_log.txt`, and saves:
 
 ## Preliminary Results: Balanced Test Split
 
-> These experiments were evaluated on an undersampled, balanced test split.
-> Final results will be reported after evaluating on an untouched test set
-> with the original fraud prevalence.
-
-| Experiment | Epochs | Learning Rate | Accuracy | Precision | Recall | F1-score |
+| Experiment | Epochs | Learning Rate | Threshold | Precision | Recall | F1-score |
 |---|---:|---:|---:|---:|---:|---:|
-| 1 | 100 | 0.001 | 0.5000 | 0.5000 | 1.0000 | 0.6667 |
-| 2 | 500 | 0.005 | 0.9526 | 0.9574 | 0.9474 | 0.9524 |
-| 3 | 750 | 0.009 | 0.9211 | 0.9167 | 0.9263 | 0.9215 |
+| 1 — Best F1 | 100 | 0.001 | 0.60 | 0.6389 | 0.4842 | 0.5509 |
+| 2 | 500 | 0.005 | 0.90 | 0.4143 | 0.6105 | 0.4936 |
+| 3 — Highest Recall | 750 | 0.009 | 0.90 | 0.2913 | 0.7789 | 0.4241 |
+
+> All metrics were calculated on a held-out test set retaining the original
+0.167% fraud prevalence. Thresholds were selected during exploratory analysis
+to demonstrate the precision–recall tradeoff.
 
 ## Limitations
 

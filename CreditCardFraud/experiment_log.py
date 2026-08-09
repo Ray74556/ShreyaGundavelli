@@ -5,7 +5,7 @@ Experiment Log
 def clear_log(log_path="experiment_log.txt"):
     with open(log_path, "w"): pass
 
-def experiment_log(experiment_num, epochs, learning_rate, metrics, log_path="experiment_log.txt"):
+def experiment_log(experiment_num,epochs,learning_rate,threshold,metrics,log_path="experiment_log.txt"):
     divider = "-" * 50
     entry = (
         f"{divider}\n"
@@ -13,12 +13,13 @@ def experiment_log(experiment_num, epochs, learning_rate, metrics, log_path="exp
         f"{divider}\n"
         f"Parameters Chosen: \n"
         f"  Neural Network: \n"
-        f"      Layers: 2\n"
-        f"      Neurons: (30, 64, 1)\n"
+        f"      Layers: 3 (2 Trainable, 1 Hidden)\n"
+        f"      Architecture: 30 -> 64 -> 1\n"
         f"      Epochs: {epochs}\n"
         f"      Learning Rate: {learning_rate}\n"
+        f"      Classification Threshold: {threshold}\n"
         f"{divider}\n"
-        f"Results:"
+        f"Results:\n"
         f"  Accuracy: {metrics['accuracy']:.4f}\n"
         f"  Precision: {metrics['precision']:.4f}\n"
         f"  Recall: {metrics['recall']:.4f}\n"
