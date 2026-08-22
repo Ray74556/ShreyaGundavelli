@@ -9,12 +9,14 @@ Computer Science student at UT Dallas focused on **Data Analytics, Machine Learn
 - Addressed severe class imbalance through training-only under sampling and evaluated models using precision, recall, F1-score, threshold analysis, and confusion matrices
 - **Tech:** Python, NumPy, pandas, scikit-learn, Matplotlib, Seaborn
 
-## Currently Working On
-
 ### Athlete Injury Risk Analysis
 - An injury-risk classification workflow using athlete training, fatigue, recovery, performance, and demographic data
 - Performed exploratory data analysis, correlation analysis, feature preprocessing, categorical encoding, and stratified train/test splitting
 - **Tech:** Python, pandas, scikit-learn, Matplotlib, Seaborn, joblib
+
+## Currently Working On
+
+### End-to-End Customer Shopping Behavior Analysis
 
 ## Technical Skills
 
