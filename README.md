@@ -35,6 +35,7 @@ Computer Science student at UT Dallas focused on **Data Analytics, Machine Learn
 - Applied machine learning and model deployment
 - SQL for analytics and data pipelines
 - AWS Cloud and AI/LLM fundamentals
+- How to build Apps using React
 
 ## Connect
 
