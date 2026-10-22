@@ -23,7 +23,7 @@ Computer Science student at UT Dallas focused on **Data Analytics, Machine Learn
 - **Languages:** Python, SQL, C++/C, JavaScript
 - **Data & Analytics:** Pandas, NumPy, Excel, data cleaning, data validation, exploratory data analysis, visualization
 - **Machine Learning:** scikit-learn, logistic regression, decision trees, neural networks, model evaluation, hyperparameter tuning
-- **Tools:** Git, GitHub, Jupyter Notebook, AWS, Tableau
+- **Tools:** Git, GitHub, Jupyter Notebook, Tableau
 
 ## Certifications
 
@@ -40,4 +40,4 @@ Computer Science student at UT Dallas focused on **Data Analytics, Machine Learn
 ## Connect
 
 - [LinkedIn](https://www.linkedin.com/in/shreya-gundavelli/)
-- Open to Data Analyst, Business Analyst, and Machine Learning internship opportunities
+- Open to Data Analyst, Business Analyst, and Machine Learning new grad opportunities
